@@ -11,6 +11,7 @@ class SequenceNotation
 public:
     std::vector<INT> seq;
 
+    SequenceNotation() = default;
     virtual ~SequenceNotation() = default;
 
     // Interfaces

@@ -1,4 +1,5 @@
 #include "PPSNotation.h"
+#include "YSequence.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -161,4 +162,12 @@ int main_testpps() {
     }
 
     return 0;
+}
+
+
+int main_testYseq() {
+  YSequence ys;
+  ys.set_and_build({ 1,2,4,8,16 });
+  ys.print(std::cout);
+  return 0;
 }

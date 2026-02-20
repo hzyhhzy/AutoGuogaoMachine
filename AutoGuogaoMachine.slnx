@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="AutoGuogaoMachine/AutoGuogaoMachine.vcxproj" />
+  <Project Path="AutoGuogaoMachine/AutoGuogaoMachine.vcxproj" Id="44ce3f66-1147-48f8-bf1e-6e0b5035539f" />
 </Solution>

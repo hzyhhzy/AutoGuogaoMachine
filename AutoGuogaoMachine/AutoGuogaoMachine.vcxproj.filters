@@ -30,12 +30,21 @@
     <ClCompile Include="EnumPPS1.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="YSequence.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SequenceNotation.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="PPSNotation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="YSequence.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="maincmds.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

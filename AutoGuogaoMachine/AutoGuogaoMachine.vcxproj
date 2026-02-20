@@ -132,10 +132,13 @@
     <ClCompile Include="PPSNotation.cpp" />
     <ClCompile Include="SequenceNotation.cpp" />
     <ClCompile Include="testNotation.cpp" />
+    <ClCompile Include="YSequence.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="maincmds.h" />
     <ClInclude Include="PPSNotation.h" />
     <ClInclude Include="SequenceNotation.h" />
+    <ClInclude Include="YSequence.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
