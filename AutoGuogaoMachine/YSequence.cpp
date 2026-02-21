@@ -412,89 +412,110 @@ void YSequence::set_and_build(std::vector<INT> seq0)
 }
 void YSequence::build_col(INT idx)
 {
-  Ycol& col = s[idx];
-  col.mountain.resize(0);
-  col.x = seq[idx];
+    Ycol& col = s[idx];
+    col.mountain.resize(0);
+    col.x = seq[idx];
 
 
-  INT x=s[idx].x; //current mountain top
+    INT x = s[idx].x; //current mountain top
 
 
-  for(INT wrow=0;;++wrow)
-  {
-    if(x==1)
-      break;
-
-    col.mountain.push_back({});
-    //col.mountain[wrow].resize(1);
-    //col.mountain[wrow][0] = { x,p };
-
-    for(INT row=0;;++row) // mountain[wrow][row] is omega*wrow+row th row 
+    for (INT wrow = 0;; ++wrow)
     {
-      INT p = idx - 1; //current parent. 0 th row is idx-1
-      if (row > 0) //last row
-        p = col.mountain[wrow][row - 1].second;
-      else if (wrow > 0 && row == 0) //top of the last wrow
-        p = col.mountain[wrow - 1].back().second;
-
-      //find the nearest number smaller than x
-      bool reachEdge = false;
-      while(true)
-      {
-        assert(p >= 0);
-        Ycol& parent=s[p];
-        INT wrow_parent = row == 0 ? wrow - 1 : wrow;
-        INT value_parent = -1; 
-        INT next_p = -1;
-        if (row == 0)//��Ҫ��ȡ
-        //  if (parent.mountain.size() <= wrow)//��Ҫ��ȡ
-        {
-          //wrow_parent = parent.mountain.size() - 1;
-          if (wrow_parent > INT(parent.mountain.size() - 1))
-            wrow_parent = INT(parent.mountain.size() - 1);
-          if (wrow_parent >= 0) //��ȡ
-          {
-            value_parent = parent.mountain[wrow_parent].back().first;
-            next_p = parent.mountain[wrow_parent].back().second;
-          }
-          else //������
-          {
-            value_parent = s[p].x;
-            next_p = p - 1;
-            //assert(seq[p] == 1);
-          }
-        }
-        else
-        {
-          if (INT(parent.mountain.size()) <= wrow || INT(parent.mountain[wrow].size()) <= row - 1)//the mountain edge
-          {
-            reachEdge = true;
+        if (x == 1)
             break;
-          }
-          else //�������
-          {
-            value_parent = parent.mountain[wrow][row - 1].first;
-            next_p = parent.mountain[wrow][row - 1].second;
-          }
-        }
 
-        assert(value_parent >= 1);
-        if(value_parent < x) //found the real parent of the next layer
+        col.mountain.push_back({});
+        //col.mountain[wrow].resize(1);
+        //col.mountain[wrow][0] = { x,p };
+
+        for (INT row = 0;; ++row) // mountain[wrow][row] is omega*wrow+row th row 
         {
-          assert(col.mountain[wrow].size() == row);
+            if (row == 0)
+            {
+                INT p = idx; 
 
-          x = x - value_parent;
-          col.mountain[wrow].push_back({ x,p });
-          break;
+                INT wrow_parent = wrow - 1;
+                INT row_parent = wrow > 0 ? col.mountain[wrow - 1].size() - 1 : -1;
+
+                while (true)
+                {
+					p = wrow_parent >= 0 ? s[p].mountain[wrow_parent][row_parent].second : p - 1; //current parent. 0 th row is idx-1
+                    assert(p >= 0);
+                    //find the highest row <= current wrow and row
+					if (wrow_parent >= (INT)s[p].mountain.size())
+                    {
+                        wrow_parent = s[p].mountain.size() - 1;
+                        if(wrow_parent>=0)
+                            row_parent = s[p].mountain[wrow_parent].size() - 1;
+                        else
+							row_parent = -1;
+                    }
+                    if (wrow_parent >= 0)
+                    {
+						if (row_parent >= (INT)s[p].mountain[wrow_parent].size())
+                        {
+                            assert(row_parent == (INT)s[p].mountain[wrow_parent].size());
+                            row_parent = s[p].mountain[wrow_parent].size() - 1;
+                        }
+                    }
+
+
+					INT value_parent = wrow_parent >= 0 ? s[p].mountain[wrow_parent][row_parent].first : s[p].x;
+                    
+                    //assert(value_parent >= 1);
+                    if (value_parent < x) //found the real parent of the next layer
+                    {
+                        x = x - value_parent;
+                        col.mountain[wrow].push_back({ x,p });
+                        break;
+                    }
+
+                }
+            }
+            else
+            {
+                INT p = idx - 1; //current parent. 0 th row is idx-1
+                p = col.mountain[wrow][row - 1].second;
+
+                //find the nearest number smaller than x
+                bool reachEdge = false;
+                while (true)
+                {
+                    assert(p >= 0);
+                    Ycol& parent = s[p];
+                    INT value_parent = -1;
+                    INT next_p = -1;
+                    if (INT(parent.mountain.size()) <= wrow || INT(parent.mountain[wrow].size()) <= row - 1)//the mountain edge
+                    {
+                        reachEdge = true;
+                        break;
+                    }
+                    else //�������
+                    {
+                        value_parent = parent.mountain[wrow][row - 1].first;
+                        next_p = parent.mountain[wrow][row - 1].second;
+                    }
+                    
+
+                    //assert(value_parent >= 1);
+                    if (value_parent < x && value_parent != -1) //found the real parent of the next layer
+                    {
+                        assert(col.mountain[wrow].size() == row);
+
+                        x = x - value_parent;
+                        col.mountain[wrow].push_back({ x,p });
+                        break;
+                    }
+
+                    //not the real parent, check the previous parent 
+                    p = next_p;
+                }
+                if (reachEdge)
+                    break;
+            }
         }
-
-        //not the real parent, check the previous parent 
-        p = next_p;
-      }
-      if (reachEdge)
-        break;
     }
-  }
 
 }
 bool YSequence::checkConsistency() const

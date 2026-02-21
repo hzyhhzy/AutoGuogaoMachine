@@ -1,7 +1,7 @@
 #include "YSequence.h"
 using namespace std;
 const int ENUM_LAYERS = 5;
-const int CHECK_COPY_NUM = 40;
+const int CHECK_COPY_NUM = 10;
 
 YSequence smallest_nonterminate_seq;
 
@@ -10,13 +10,22 @@ static void check_nonterminate_seq(const std::vector<INT>& seq, const std::vecto
     INT loop_len = loop_dif.size();
     std::vector<INT> copied_seq = seq;
     INT loop_start = seq.size() - loop_len;
+	INT check_copy_num = CHECK_COPY_NUM;
+    //larger than seq[i] for any i
+    for (INT i = 0; i < (INT)seq.size(); i++)
+    {
+        if (check_copy_num < seq[i] + 1)
+        {
+            check_copy_num = seq[i] + 1;
+        }
+    }
     //copy CHECK_COPY_NUM times and add loop_dif
-    for (INT i = 0; i < CHECK_COPY_NUM; i++) {
+    for (INT i = 0; i < check_copy_num; i++) {
         for (INT j = 0; j < loop_len; j++) {
             copied_seq.push_back(seq[loop_start + j] + (i + 1) * loop_dif[j]);
         }
     }
-    assert(copied_seq.size() == seq.size() + CHECK_COPY_NUM * loop_len);
+    assert(copied_seq.size() == seq.size() + check_copy_num * loop_len);
     vector<bool> res;
 	YSequence copied_seq_obj;
     copied_seq_obj.set_and_build(copied_seq);
@@ -58,10 +67,10 @@ static void check_loop_dif(const std::vector<INT>& seq)
     for (int loop_len = 1; loop_len <= seq.size(); loop_len++) {
         vector<INT> loop_dif;
         //enum all binary sequences of length loop_len
-        for (uint64_t i = 0; i < (uint64_t(1) << loop_len); i++) {
+        for (uint64_t i = 0; i < (uint64_t(1) << (loop_len*2)); i++) {
             loop_dif.clear();
             for (int j = 0; j < loop_len; j++) {
-                loop_dif.push_back(1 * ((i >> j) & 1));
+                loop_dif.push_back(2 * ((i >> (j*2)) & 3));
             }
             check_nonterminate_seq(seq, loop_dif);
         }
@@ -94,7 +103,7 @@ static bool enum_recursive(std::vector<INT>& prev) //return whether standard
 
 int main_enumyseq1()
 {
-    vector<INT> prev = { 1,3,9 };
+    vector<INT> prev = { 1,3 };
     enum_recursive(prev);
     return 0;
 }
