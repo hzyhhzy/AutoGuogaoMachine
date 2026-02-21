@@ -7,7 +7,8 @@ int main()
 {
     //return main_testpps();
   //return main_enumpps1();
-  return main_testYseq();
+    return main_testYseq();
+    return main_enumyseq1();
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

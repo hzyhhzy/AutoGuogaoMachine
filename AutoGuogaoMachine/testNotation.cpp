@@ -173,8 +173,9 @@ int main_testYseq() {
   //ys.set_and_build({ 1,3,8,17,12,7,16,34,24,15,32,67,48,31 });
 
   //ys.set_and_build({ 1,3,9,19,12,18,33,67,39 });
-  ys.set_and_build({ 1,3,9,19,12,18,33,67,38,48,72,129,81,99,140 });
-  //ys._expandLen(20);
+  //ys.set_and_build({ 1,3,9,19,12,18,33,67,38,48,72,129,81,99,140 });
+  ys.set_and_build({ 1,3,9,6,9,7,10 });
+  ys._expandLen(20);
   ys.print(std::cout);
   std::vector<bool> res;
   bool isStandard = ys._checkStandardAndNonMaximum(res);

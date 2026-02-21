@@ -55,11 +55,14 @@ void YSequence::expand_single_col(INT root, INT orig_len, INT idx_since_orig) //
             if ((INT)s[root].mountain.size() > wrow)
                 lift_start = s[root].mountain[wrow].size();
             lift_layers = lift_end - lift_start;
-            assert(lift_layers >= 0);
+            //assert(lift_layers >= 0); // not necessary, example: 1,3,9,3,6,8
             //assert(lift_layers == 0);
         }
-        if (lift_layers == 0)
+        if (lift_layers <= 0)
+        {
             maybe_lift = false;
+            lift_layers = 0;
+        }
         if (maybe_lift)//��Ҫ��ȫ������һ�в�һ��������Ƿ�Ϊ����Ԫ��
         {
             INT idx_cur = ref_idx;

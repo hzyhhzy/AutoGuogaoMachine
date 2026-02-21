@@ -5,7 +5,7 @@ const int CHECK_COPY_NUM=5;
 
 PPSNotation smallest_nonterminate_seq;
 
-void check_nonterminate_seq(const std::vector<INT>& seq, const std::vector<INT>& loop_dif)
+static void check_nonterminate_seq(const std::vector<INT>& seq, const std::vector<INT>& loop_dif)
 {
     INT loop_len=loop_dif.size();
     PPSNotation copied_seq;
@@ -47,7 +47,7 @@ void check_nonterminate_seq(const std::vector<INT>& seq, const std::vector<INT>&
     }
 }
 
-void check_loop_dif(const std::vector<INT>& seq)
+static void check_loop_dif(const std::vector<INT>& seq)
 {
     for(int loop_len=1;loop_len<=seq.size();loop_len++){
         vector<INT> loop_dif;
@@ -61,7 +61,7 @@ void check_loop_dif(const std::vector<INT>& seq)
         }
     }
 }
-void enum_pps_recursive(std::vector<INT>& prev)
+static void enum_pps_recursive(std::vector<INT>& prev)
 {
     //check standard
     PPSNotation pps;
