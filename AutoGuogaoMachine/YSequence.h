@@ -5,7 +5,7 @@
 class YSequence : public SequenceNotation
 {
   void build_col(INT idx);//build idx row, assume all previous cols are built
-  
+  void expand_single_col(INT root, INT orig_len, INT idx_since_orig); //չ�������еĸ���һ�С�
 
   
 
@@ -20,7 +20,7 @@ public:
   };
 
   std::vector<Ycol> s;
-  bool checkConsistency();//check mountain
+  bool checkConsistency() const;//check mountain
   void set_and_build(std::vector<INT> seq0);
 
 
@@ -43,10 +43,10 @@ public:
   void _reduce() override;
 
   // Dictionary order comparison
-  int _compare(const SequenceNotation& other) const;
+  int _compare(const SequenceNotation& other) const override;
 
   // Initialize to [0, 1, ..., n-1]
-  void _init(INT n);
+  void _init(INT n)  override;
 
   // Find standard form and check non-maximum
   bool _checkStandardAndNonMaximum(std::vector<bool>& res) override;

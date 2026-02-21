@@ -23,15 +23,174 @@ void YSequence::_cut(INT n) {
   if (n < 0) return;
   if ((size_t)n >= seq.size()) {
     seq.clear();
+    s.clear();
   }
   else {
-    seq.resize(seq.size() - n);
+      seq.resize(seq.size() - n);
+      s.resize(s.size() - n);
   }
+}
+
+void YSequence::expand_single_col(INT root, INT orig_len, INT idx_since_orig) //Õ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÐµÄ¸ï¿½ï¿½ï¿½Ò»ï¿½Ð¡ï¿½
+{
+    assert(s.size() == orig_len + idx_since_orig);
+    INT copy_period = orig_len - root - 1;
+    INT ref_idx = idx_since_orig % copy_period + root + 1;
+    INT fill_num = idx_since_orig / copy_period + 1;
+    s.push_back({});
+    Ycol& ref_col = s[ref_idx];
+    Ycol& new_col = s.back();
+    for (INT wrow = 0; wrow < (INT)ref_col.mountain.size(); wrow++)
+    {
+        new_col.mountain.push_back({});
+        //ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Òªï¿½ï¿½È«
+        INT lift_end = 0;
+        INT lift_start = 0;
+        INT lift_layers = 0;
+        bool maybe_lift = true;//ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«
+        if ((INT)s[orig_len - 1].mountain.size() > wrow)
+        {
+            lift_end = s[orig_len - 1].mountain[wrow].size();
+            lift_start = 0;
+            if ((INT)s[root].mountain.size() > wrow)
+                lift_start = s[root].mountain[wrow].size();
+            lift_layers = lift_end - lift_start;
+            assert(lift_layers >= 0);
+            //assert(lift_layers == 0);
+        }
+        if (lift_layers == 0)
+            maybe_lift = false;
+        if (maybe_lift)//ï¿½ï¿½Òªï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ð²ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Îªï¿½ï¿½ï¿½ï¿½Ôªï¿½ï¿½
+        {
+            INT idx_cur = ref_idx;
+            //ï¿½ï¿½ï¿½Åµï¿½wrowï¿½ï¿½ï¿½lift_startï¿½ÐµÄ¸ï¿½ï¿½Úµï¿½ï¿½ï¿½Ç°ï¿½ï¿½é¿´ï¿½ï¿½ï¿½Ü·ñµ½´ï¿½rootï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½rootËµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
+            while (true)
+            {
+                if ((INT)s[idx_cur].mountain.size() <= wrow || (INT)s[idx_cur].mountain[wrow].size() <= lift_start) //Ã»ï¿½Ð¸ï¿½ï¿½Úµï¿½ï¿½Ë£ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
+                {
+                    maybe_lift = false;
+                    break;
+                }
+                INT next_idx = s[idx_cur].mountain[wrow][lift_start].second;
+                if (next_idx == root) //ï¿½Üµï¿½ï¿½ï¿½rootï¿½Ë£ï¿½Ëµï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
+                {
+                    break;
+                }
+                else if (next_idx > root) //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½
+                {
+                    idx_cur = next_idx;
+                }
+                else //ï¿½ï¿½ï¿½ï¿½rootï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ëµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½
+                {
+                    maybe_lift = false;
+                    break;
+                }
+            }
+        }
+
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½Ö±ï¿½Ó¸ï¿½ï¿½Æ¡ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½rootï¿½ï¿½parentï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½fill_num*copy_period
+        if (!maybe_lift)
+        {
+            for (INT row = 0; row < (INT)ref_col.mountain[wrow].size(); row++)
+            {
+                INT parent = ref_col.mountain[wrow][row].second;
+                if (parent >= root)
+                    parent = parent + fill_num * copy_period;
+                new_col.mountain[wrow].push_back({ -1, parent }); //ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+            }
+        }
+        else //ï¿½ï¿½Òªï¿½ï¿½È«
+        {
+            //[0,lift_start)ï¿½ï¿½Ö±ï¿½Ó¸ï¿½ï¿½ï¿½
+            //[lift_start,lift_start+lift_layers*fill_num)ï¿½ï¿½ï¿½Ã¡ï¿½ï¿½ï¿½ï¿½Æ±ß¡ï¿½ï¿½ï¿½ä£¬ï¿½ï¿½ï¿½Æ±ï¿½Îªref_col[wrow][lift_start]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lift_layers*fill_numï¿½ï¿½
+            //[lift_start+lift_layers*fill_num, end)ï¿½ï¿½ï¿½Ç²Î¿ï¿½ï¿½Ðµï¿½[lift_start, end)ï¿½ï¿½rowï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½lift_layers*fill_numï¿½Ä½ï¿½ï¿½
+            INT lift_rows = lift_layers * fill_num;
+            for (INT row = 0; row < lift_start; row++)
+            {
+                INT parent = ref_col.mountain[wrow][row].second;
+                if (parent >= root)
+                    parent = parent + fill_num * copy_period;
+                new_col.mountain[wrow].push_back({ -1, parent }); //ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+            }
+            for (INT row = lift_start; row < lift_start + lift_rows; row++)
+            {
+                INT parent = ref_col.mountain[wrow][lift_start].second;
+                if (parent >= root)
+                    parent = parent + fill_num * copy_period;
+                new_col.mountain[wrow].push_back({ -1, parent }); //ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+            }
+            for (INT row = lift_start + lift_rows; row < (INT)ref_col.mountain[wrow].size() + lift_rows; row++)
+            {
+                INT parent = ref_col.mountain[wrow][row - lift_rows].second;
+                if (parent >= root)
+                    parent = parent + fill_num * copy_period;
+                new_col.mountain[wrow].push_back({ -1, parent }); //ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
+            }
+        }
+
+    }
+
+    //É½ï¿½ï¿½Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½Ú´Ó¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â»ï¿½Ô­ï¿½ï¿½Öµï¿½ï¿½ï¿½î¶¥ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½È»ï¿½ï¿½ï¿½ï¿½parentï¿½ï¿½ï¿½ï¿½Öµï¿½Û¼ï¿½
+    INT x_now = 1;
+    for (INT wrow = new_col.mountain.size() - 1; wrow >= 0; wrow--)
+    {
+        for (INT row = new_col.mountain[wrow].size() - 1; row >= 0; row--)
+        {
+            INT parent_idx = new_col.mountain[wrow][row].second;
+            assert(parent_idx >= 0);
+            const Ycol& parent_col = s[parent_idx];
+            INT value_parent = -1;
+            if (row == 0)//ï¿½ï¿½ï¿½ï¿½parentï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½wrowï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+            {
+                INT parent_wrow = wrow - 1;
+                if (INT(parent_col.mountain.size()) <= parent_wrow)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½Ä²ï¿½Ö¹Ò»ï¿½ã£¨×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë²¢Ã»ï¿½Ð°ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ï¿½Ü¿ï¿½Ã¼ï¿½ï¿½ã£©
+                    parent_wrow = parent_col.mountain.size() - 1;
+                if (parent_wrow == -1)//Ô­ï¿½ï¿½ï¿½ï¿½
+                {
+                    value_parent = parent_col.x;
+
+                }
+                else
+                {
+                    value_parent = parent_col.mountain[parent_wrow].back().first;
+                }
+            }
+            else
+            {
+                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½parentï¿½ï¿½Í¬Ò»ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½
+                assert((INT)parent_col.mountain.size() > wrow);
+                assert((INT)parent_col.mountain[wrow].size() > row - 1);
+                value_parent = parent_col.mountain[wrow][row - 1].first;
+            }
+
+            new_col.mountain[wrow][row].first = x_now;
+            x_now = x_now + value_parent;
+        }
+    }
+    new_col.x = x_now;
+    new_col.cachedMax = new_col.x;//ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµ
+    seq.push_back(new_col.x);
 }
 
 // Expand non-successor n times
 // Fundamental sequence [n] expands to the y + nL - 1 term
 void YSequence::_expand(INT n) {
+    assert(!_isSuccessor());
+    INT root = s.back().mountain.back().back().second;
+    INT orig_len = s.size();
+    seq.back() = seq.back() - 1; // -1 and rebuild
+    build_col(orig_len - 1);
+    if (n == 0)
+        return;
+
+    INT copy_period = orig_len - root - 1;
+    for (int i = 0; i < n * copy_period; i++) //build i+orig_len+1 th row
+    {
+        expand_single_col(root, orig_len, i);
+    }
+    assert(checkConsistency());
+    return;
+
 }
 
 // Expand until length is at least x + n, then cut to x + n
@@ -45,152 +204,19 @@ void YSequence::_expandLen(INT n) {
     if (n == 0)
         return;
 
-    INT copy_period = orig_len - root - 1;
     for (int i = 0; i < n; i++) //build i+orig_len+1 th row
     {
-        INT ref_idx = i % copy_period + root + 1;
-        INT fill_num = i / copy_period + 1;
-        s.push_back({});
-        Ycol& ref_col = s[ref_idx];
-        Ycol& new_col = s.back();
-        for (INT wrow = 0; wrow < ref_col.mountain.size(); wrow++)
-        {
-            new_col.mountain.push_back({});
-            //¼ì²âÊÇ·ñÐèÒª²¹È«
-            INT lift_end = 0;
-            INT lift_start = 0;
-            INT lift_layers = 0;
-            bool maybe_lift = true;//ÐèÒªÌáÉý²¹È«
-            if ((INT)s[orig_len - 1].mountain.size() > wrow)
-            {
-                lift_end = s[orig_len - 1].mountain[wrow].size();
-                lift_start = 0;
-                if ((INT)s[root].mountain.size() > wrow)
-                    lift_start = s[root].mountain[wrow].size();
-                lift_layers = lift_end - lift_start;
-                assert(lift_layers >= 0);
-                //assert(lift_layers == 0);
-            }
-            if (lift_layers == 0)
-                maybe_lift = false;
-            if (maybe_lift)//ÐèÒª²¹È«£¬µ«ÕâÒ»ÁÐ²»Ò»¶¨£¬¼ì²éÊÇ·ñÎª¶¥µãÔªËØ
-            {
-                INT idx_cur = ref_idx;
-                //ÑØ×ÅµÚwrow²ãµÚlift_startÐÐµÄ¸¸½ÚµãÏòÇ°¼ì²é¿´¿´ÄÜ·ñµ½´ïroot£¬Èç¹ûÄÜµ½´ïrootËµÃ÷ÐèÒªÌáÉý£¬·ñÔò²»ÐèÒªÌáÉý
-                while (true)
-                {
-                    if ((INT)s[idx_cur].mountain.size() <= wrow || (INT)s[idx_cur].mountain[wrow].size() <= lift_start) //Ã»ÓÐ¸¸½ÚµãÁË£¬ËµÃ÷²»ÐèÒªÌáÉý
-                    {
-                        maybe_lift = false;
-                        break;
-                    }
-                    INT next_idx = s[idx_cur].mountain[wrow][lift_start].second;
-                    if (next_idx == root) //ÄÜµ½´ïrootÁË£¬ËµÃ÷ÐèÒªÌáÉý
-                    {
-                        break;
-                    }
-                    else if (next_idx > root) //¼ÌÐøÍùÇ°ÕÒ
-                    {
-                        idx_cur = next_idx;
-                    }
-                    else //Ìø¹ýroot»òÕßÃ»×æÏÈÁË£¬ËµÃ÷²»ÐèÒªÌáÉý
-                    {
-                        maybe_lift = false;
-                        break;
-                    }
-                }
-            }
-
-            //Èç¹û²»²¹È«£¬Ö±½Ó¸´ÖÆ¡£´óÓÚµÈÓÚrootµÄparentÐèÒªÔö¼Ófill_num*copy_period
-            if (!maybe_lift)
-            {
-                for (INT row = 0; row < (INT)ref_col.mountain[wrow].size(); row++)
-                {
-                    INT parent = ref_col.mountain[wrow][row].second;
-                    if (parent >= root)
-                        parent = parent + fill_num * copy_period;
-                    new_col.mountain[wrow].push_back({ -1, parent }); //ÊýÖµ´ý¶¨
-                }
-            }
-			else //ÐèÒª²¹È«
-            {
-				//[0,lift_start)ÐÐÖ±½Ó¸´ÖÆ
-				//[lift_start,lift_start+lift_layers*fill_num)ÐÐÓÃ¡°¸´ÖÆ±ß¡±Ìî³ä£¬¸´ÖÆ±ßÎªref_col[wrow][lift_start]£¬¸´ÖÆlift_layers*fill_num±é
-				//[lift_start+lift_layers*fill_num, end)ÐÐÊÇ²Î¿¼ÁÐµÄ[lift_start, end)ÈÃrowÕûÌåÔö¼Ólift_layers*fill_numµÄ½á¹û
-				INT lift_rows = lift_layers * fill_num;
-                for (INT row = 0; row < lift_start; row++)
-                {
-                    INT parent = ref_col.mountain[wrow][row].second;
-                    if (parent >= root)
-                        parent = parent + fill_num * copy_period;
-                    new_col.mountain[wrow].push_back({ -1, parent }); //ÊýÖµ´ý¶¨
-                }
-                for (INT row = lift_start; row < lift_start + lift_rows; row++)
-                {
-                    INT parent = ref_col.mountain[wrow][lift_start].second;
-                    if (parent >= root)
-                        parent = parent + fill_num * copy_period;
-                    new_col.mountain[wrow].push_back({ -1, parent }); //ÊýÖµ´ý¶¨
-                }
-                for (INT row = lift_start + lift_rows; row < (INT)ref_col.mountain[wrow].size() + lift_rows; row++)
-                {
-                    INT parent = ref_col.mountain[wrow][row - lift_rows].second;
-                    if (parent >= root)
-                        parent = parent + fill_num * copy_period;
-                    new_col.mountain[wrow].push_back({ -1, parent }); //ÊýÖµ´ý¶¨
-                }
-            }
-
-        }
-
-        //É½ÂöÍ¼´¦ÀíÍêÁË£¬ÏÖÔÚ´Ó¶¥¶ËÍùÏÂ»¹Ô­ÊýÖµ£¬×î¶¥¶ËÊÇ1£¬È»ºóÓëparentµÄÊýÖµÀÛ¼Ó
-        INT x_now = 1;
-		for (INT wrow = new_col.mountain.size() - 1; wrow >= 0; wrow--)
-        {
-            for(INT row=new_col.mountain[wrow].size()-1;row>=0;row--)
-            {
-                INT parent_idx = new_col.mountain[wrow][row].second;
-				assert(parent_idx >= 0);
-				const Ycol& parent_col = s[parent_idx];
-                INT value_parent = -1;
-                if (row == 0)//¿¼ÂÇparent´ÓÉÏÒ»¸öwrowÌáÈ¡ÉÏÀ´µÄÊý×Ö
-                {
-					INT parent_wrow = wrow - 1;
-                    if(INT(parent_col.mountain.size()) <= parent_wrow)//¿ÉÄÜÌáÈ¡µÄ²»Ö¹Ò»²ã£¨×¢ÒâÕâ¸ö´úÂë²¢Ã»ÓÐ°ÑÌáÈ¡³öÀ´µÄÄÇÒ»ÐÐÏÔÊ½¼ÇÂ¼³öÀ´£¬1ÕâÖÖÊý×Ö¿ÉÄÜ¿çºÃ¼¸²ã£©
-						parent_wrow = parent_col.mountain.size() - 1;
-                    if (parent_wrow == -1)//Ô­ÐòÁÐ
-                    {
-                        value_parent = parent_col.x;
-
-                    }
-                    else
-                    {
-                        value_parent = parent_col.mountain[parent_wrow].back().first;
-                    }
-                }
-                else
-                {
-					//Õý³£Çé¿ö£¬parentÔÚÍ¬Ò»²ãµÄÉÏÒ»ÐÐ
-                    assert((INT)parent_col.mountain.size() > wrow);
-                    assert((INT)parent_col.mountain[wrow].size() > row - 1);
-					value_parent = parent_col.mountain[wrow][row - 1].first;
-                }
-                
-                new_col.mountain[wrow][row].first = x_now;
-				x_now = x_now + value_parent;
-            }
-        }
-		new_col.x = x_now;
-		seq.push_back(new_col.x);
+		expand_single_col(root, orig_len, i);
     }
 
-
+    assert(checkConsistency());
 
     return;
 }
 
 // Same as _expandLen(0)
 void YSequence::_reduce() {
+    assert(false);
 }
 
 // Dictionary order comparison
@@ -211,22 +237,144 @@ int YSequence::_compare(const SequenceNotation& other) const {
 
 // Initialize to [1, w]
 void YSequence::_init(INT n) {
-  seq.clear();
-  seq.reserve(n);
-  for (INT i = 0; i < n; ++i) {
-    seq.push_back(i);
-  }
+    if (n == 0)
+        set_and_build({ 1 });
+    else 
+        set_and_build({ 1, n });
 }
 
 // Find standard form and check non-maximum
 bool YSequence::_checkStandardAndNonMaximum(std::vector<bool>& res) {
-  throw "todo";
-  return true;
+    // res must be same size as current seq and initially false
+    res.resize(seq.size());
+    std::fill(res.begin(), res.end(), false);
+    if (seq.size() == 0)
+    {
+		return true; //empty sequence is 0
+    }
+    else if (seq.size() == 1)
+    {
+        res[0] = true;
+        return seq[0] == 1;
+    }
+    else if (seq.size() == 2)
+    {
+        res[0] = true;
+        res[1] = false;
+        return seq[0] == 1 && seq[1] >= 1;
+    }
+
+
+
+    YSequence work;
+    // We don't know the exact length to start with.
+    // But based on "find the first difference", we can compare [0, 1, 2, ...] with `seq`.
+
+    work._init(seq[1] + 1);
+
+    INT idx = 0;
+
+    while (idx < (INT)seq.size()) {
+        if (work.seq[idx] < seq[idx]) //non-standard
+            return false;
+        if (work.seq[idx] == seq[idx])
+        {
+            idx++;
+            continue;
+        }
+        assert(work.seq[idx] > seq[idx]);
+        res[idx] = true;
+
+        //cut
+        //work.seq.resize(idx + 1);
+        assert(work.seq.size() == idx + 1);
+
+        INT expanded_terms = work._expandUntilLarger(*this, false);
+        if (expanded_terms == -1)
+        {
+            return false;
+        }
+        idx += expanded_terms;
+    }
+
+    //standard, copy the cachedMax
+	for (INT i = 2; i < (INT)seq.size(); i++)
+    {
+       s[i].cachedMax=work.s[i].cachedMax;
+    }
+    return true;
 }
 
 INT YSequence::_expandUntilLarger(const SequenceNotation& target, bool selfcheck) {
-  throw "todo";
-  return 0;
+    if (selfcheck) {
+        if (seq.size() > target.seq.size()) {
+            throw std::runtime_error("Sequence length larger than target length");
+        }
+        for (size_t i = 0; i < seq.size() - 1; ++i) {
+            if (seq[i] != target.seq[i]) {
+                throw std::runtime_error("Sequence prefix does not match target");
+            }
+        }
+        if (seq.empty())
+        {
+            throw std::runtime_error("Sequence is empty");
+        }
+        if (_isSuccessor()) {
+            throw std::runtime_error("Sequence is a successor");
+        }
+
+
+    }
+
+
+    INT orig_len = (INT)seq.size();
+
+
+    INT val = seq.back();
+    INT target_val = target.seq[orig_len - 1];
+
+    // If lengths are equal and we match exactly
+    if (orig_len == target.seq.size() && val == target_val) return 0;
+
+	if (val <= target_val) return -1; //smaller than target, no need to expand
+
+    if (val > target_val + 1)
+    {
+		seq.back() = target_val + 1; //Ö±ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½targetï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½target
+        build_col(orig_len - 1);
+    }
+
+    INT root = s.back().mountain.back().back().second;
+    seq.back() = seq.back() - 1; // -1 and rebuild
+    build_col(orig_len - 1);
+
+    for (int i = 0; i < target.seq.size()-orig_len; i++) //build i+orig_len+1 th row
+    {
+        expand_single_col(root, orig_len, i);
+        INT idx = orig_len + i;
+		assert(seq.size() == idx + 1);
+        if (seq[idx] > target.seq[idx])
+        {
+			return seq.size() - orig_len; //larger
+        }
+        else if (seq[idx] < target.seq[idx]) //non-standard
+        {
+            return -1;
+        }
+        else
+        {
+			continue; //same, continue
+        }
+
+    }
+
+	//if reach here, completely same as target in the prefix, now check length
+    assert(seq.size() == target.seq.size());
+    assert(seq.back() == target.seq.back());
+
+    // If we finished loop, we are exactly equal to target
+    return seq.size() - orig_len;
+
 }
 void YSequence::print(std::ostream& os) const {
   for (INT i = 0; i < (INT)seq.size(); ++i) {
@@ -295,18 +443,18 @@ void YSequence::build_col(INT idx)
         INT wrow_parent = row == 0 ? wrow - 1 : wrow;
         INT value_parent = -1; 
         INT next_p = -1;
-        if (row == 0)//ÐèÒªÌáÈ¡
-        //  if (parent.mountain.size() <= wrow)//ÐèÒªÌáÈ¡
+        if (row == 0)//ï¿½ï¿½Òªï¿½ï¿½È¡
+        //  if (parent.mountain.size() <= wrow)//ï¿½ï¿½Òªï¿½ï¿½È¡
         {
           //wrow_parent = parent.mountain.size() - 1;
           if (wrow_parent > INT(parent.mountain.size() - 1))
             wrow_parent = INT(parent.mountain.size() - 1);
-          if (wrow_parent >= 0) //ÌáÈ¡
+          if (wrow_parent >= 0) //ï¿½ï¿½È¡
           {
             value_parent = parent.mountain[wrow_parent].back().first;
             next_p = parent.mountain[wrow_parent].back().second;
           }
-          else //×îÏÂÃæ
+          else //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
           {
             value_parent = s[p].x;
             next_p = p - 1;
@@ -320,7 +468,7 @@ void YSequence::build_col(INT idx)
             reachEdge = true;
             break;
           }
-          else //×î³£¼ûÇéÐÎ
+          else //ï¿½î³£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
           {
             value_parent = parent.mountain[wrow][row - 1].first;
             next_p = parent.mountain[wrow][row - 1].second;
@@ -345,4 +493,20 @@ void YSequence::build_col(INT idx)
     }
   }
 
+}
+bool YSequence::checkConsistency() const
+{
+  YSequence tmp;
+  tmp.set_and_build(seq);
+  //tmp.s should be completely same as seq.s
+  if (s.size() != tmp.s.size())
+      return false;
+  for (size_t i = 0; i < s.size(); ++i)
+  {
+      if (s[i].x != tmp.s[i].x)
+          return false;
+      if (s[i].mountain != tmp.s[i].mountain)
+          return false;
+  }
+  return true;
 }
