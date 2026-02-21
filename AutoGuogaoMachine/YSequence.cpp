@@ -37,7 +37,43 @@ void YSequence::_expand(INT n) {
 // Expand until length is at least x + n, then cut to x + n
 // Here 'x' refers to the original length (as per user context: "If original length is x...")
 void YSequence::_expandLen(INT n) {
-  throw "todo";
+  assert(!_isSuccessor());
+  INT root = s.back().mountain.back().back().second;
+  INT orig_len = s.size();
+  seq.back() = seq.back() - 1; // -1 and rebuild
+  build_col(orig_len - 1); 
+  if (n == 0)
+    return;
+
+  INT copy_period = orig_len - root - 1;
+  for (int i = 0; i < n; i++) //build i+orig_len+1 th row
+  {
+    INT ref_idx = i % copy_period + root + 1;
+    Ycol& ref_col = s[ref_idx];
+    INT fill_num = i / copy_period;
+    for (INT wrow = 0; wrow < ref_col.mountain.size(); wrow++)
+    {
+      //检测是否需要补全
+      INT lift_end = 0;
+      INT lift_start = 0;
+      INT lift_layers = 0;
+      if (s[orig_len - 1].mountain.size() > wrow)
+      {
+        lift_end = s[orig_len - 1].mountain[wrow].size();
+        lift_start = 0;
+        if (s[root].mountain.size() > wrow)
+          lift_start = s[root].mountain[wrow].size(); 
+        lift_layers = lift_end - lift_start;
+        assert(lift_layers >= 0);
+        assert(lift_layers == 0);
+      }
+      if(wrow)
+      INT base_h = s[root].mountain[wrow].size();
+    }
+  }
+
+
+
   return;
 }
 
@@ -105,7 +141,6 @@ void YSequence::set_and_build(std::vector<INT> seq0)
   s.resize(seq0.size());
   for (INT i = 0; i < (INT)seq0.size(); ++i) {
     s[i].clear();
-    s[i].x = seq0[i];
   }
   for (INT i = 0; i < (INT)seq0.size(); ++i) {
     build_col(i);
@@ -116,63 +151,82 @@ void YSequence::build_col(INT idx)
 {
   Ycol& col = s[idx];
   col.mountain.resize(0);
+  col.x = seq[idx];
 
 
   INT x=s[idx].x; //current mountain top
-  INT p=idx-1; //current parent. 0 th row is idx-1
 
 
   for(INT wrow=0;;++wrow)
   {
     if(x==1)
       break;
-    else 
-      assert(p>=0);
 
     col.mountain.push_back({});
-    col.mountain[wrow].resize(1);
-    col.mountain[wrow][0] = { x,p };
+    //col.mountain[wrow].resize(1);
+    //col.mountain[wrow][0] = { x,p };
 
     for(INT row=0;;++row) // mountain[wrow][row] is omega*wrow+row th row 
     {
+      INT p = idx - 1; //current parent. 0 th row is idx-1
+      if (row > 0) //last row
+        p = col.mountain[wrow][row - 1].second;
+      else if (wrow > 0 && row == 0) //top of the last wrow
+        p = col.mountain[wrow - 1].back().second;
+
       //find the nearest number smaller than x
-      p = col.mountain[wrow][row].second;
       bool reachEdge = false;
       while(true)
       {
-        assert(p>=0);
+        assert(p >= 0);
         Ycol& parent=s[p];
-        if(parent.mountain.size() <= wrow)
+        INT wrow_parent = row == 0 ? wrow - 1 : wrow;
+        INT value_parent = -1; 
+        INT next_p = -1;
+        if (row == 0)//需要提取
+        //  if (parent.mountain.size() <= wrow)//需要提取
         {
-          assert(parent.mountain.size()==wrow);
-          assert(wrow==0 || parent.mountain[wrow-1].back().first==1); 
-          parent.mountain.push_back({});
-          if (wrow > 0)
-            parent.mountain[wrow].push_back(parent.mountain[wrow - 1].back());
-          else
+          //wrow_parent = parent.mountain.size() - 1;
+          if (wrow_parent > INT(parent.mountain.size() - 1))
+            wrow_parent = INT(parent.mountain.size() - 1);
+          if (wrow_parent >= 0) //提取
           {
-            assert(parent.x == 1);
-            parent.mountain[wrow].push_back({1, -1});
+            value_parent = parent.mountain[wrow_parent].back().first;
+            next_p = parent.mountain[wrow_parent].back().second;
+          }
+          else //最下面
+          {
+            value_parent = seq[p];
+            next_p = p - 1;
+            //assert(seq[p] == 1);
           }
         }
-        if(parent.mountain[wrow].size() <= row)//the mountain edge
+        else
         {
-          reachEdge = true;
-          break;
+          if (parent.mountain.size() <= wrow || parent.mountain[wrow].size() <= row - 1)//the mountain edge
+          {
+            reachEdge = true;
+            break;
+          }
+          else //最常见情形
+          {
+            value_parent = parent.mountain[wrow][row - 1].first;
+            next_p = parent.mountain[wrow][row - 1].second;
+          }
         }
 
-
-        if(parent.mountain[wrow][row].first<x) //found the real parent of the next layer
+        assert(value_parent >= 1);
+        if(value_parent < x) //found the real parent of the next layer
         {
-          assert(col.mountain[wrow].size() == row+1);
+          assert(col.mountain[wrow].size() == row);
 
-          x = x - parent.mountain[wrow][row].first;
+          x = x - value_parent;
           col.mountain[wrow].push_back({ x,p });
           break;
         }
 
-        //check the previous parent 
-        p=parent.mountain[wrow][row].second;
+        //not the real parent, check the previous parent 
+        p = next_p;
       }
       if (reachEdge)
         break;

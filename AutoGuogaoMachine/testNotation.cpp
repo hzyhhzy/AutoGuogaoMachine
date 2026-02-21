@@ -167,7 +167,10 @@ int main_testpps() {
 
 int main_testYseq() {
   YSequence ys;
-  ys.set_and_build({ 1,2,4,8,16 });
+  //ys.set_and_build({ 1,2,4,8,16 });
+  //ys.set_and_build({ 1,4,16,64 });
+  //ys.set_and_build({ 1,4,9,3,10,26,9,28,77,27 });
+  ys.set_and_build({ 1,3,8,17,12,7,16,34,24,15,32,67,48,31 });
   ys.print(std::cout);
   return 0;
 }
