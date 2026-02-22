@@ -87,10 +87,8 @@ int main_testpps() {
                 continue;
             }
 
-            PPSNotation target;
-            target.seq = target_seq;
             try {
-                bool res = pps._expandUntilLarger(target);
+                bool res = pps._expandUntilLarger(target_seq);
                 std::cout << "Result: " << (res ? "True" : "False") << std::endl;
             } catch (const std::exception& e) {
                 std::cout << "Error: " << e.what() << std::endl;

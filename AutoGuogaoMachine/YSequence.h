@@ -50,6 +50,10 @@ public:
 
   // Find standard form and check non-maximum
   bool _checkStandardAndNonMaximum(std::vector<bool>& res) override;
-  INT _expandUntilLarger(const SequenceNotation& target, bool selfcheck = true) override;
+  INT _expandUntilLarger(const std::vector<INT>& target, bool selfcheck = true) override;
   void print(std::ostream& os) const override;
+
+
+  // Find standard form and check non-maximum, but provide a seq only
+  static bool checkStandardAndNonMaximum(std::vector<INT> seq,std::vector<bool>& res);
 };

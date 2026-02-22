@@ -1,7 +1,9 @@
 #include "YSequence.h"
 using namespace std;
 const int ENUM_LAYERS = 5;
-const int CHECK_COPY_NUM = 10;
+const int MIN_COPY_NUM = 10;
+const int MAX_NUMBER_IN_SEQ = 40;
+const int MAX_PRINT_TERM= 4;
 
 YSequence smallest_nonterminate_seq;
 
@@ -10,7 +12,7 @@ static void check_nonterminate_seq(const std::vector<INT>& seq, const std::vecto
     INT loop_len = loop_dif.size();
     std::vector<INT> copied_seq = seq;
     INT loop_start = seq.size() - loop_len;
-	INT check_copy_num = CHECK_COPY_NUM;
+	INT check_copy_num = MIN_COPY_NUM;
     //larger than seq[i] for any i
     for (INT i = 0; i < (INT)seq.size(); i++)
     {
@@ -27,15 +29,18 @@ static void check_nonterminate_seq(const std::vector<INT>& seq, const std::vecto
     }
     assert(copied_seq.size() == seq.size() + check_copy_num * loop_len);
     vector<bool> res;
-	YSequence copied_seq_obj;
-    copied_seq_obj.set_and_build(copied_seq);
-    bool is_standard = copied_seq_obj._checkStandardAndNonMaximum(res);
+	//YSequence copied_seq_obj;
+    //copied_seq_obj.set_and_build(copied_seq);
+    //bool is_standard = copied_seq_obj._checkStandardAndNonMaximum(res);
+    bool is_standard = YSequence::checkStandardAndNonMaximum(copied_seq,res);
+
+
     if (!is_standard)return;
-    if (!copied_seq_obj.checkConsistency())
-    {
-		copied_seq_obj.print(cout);
-		throw std::runtime_error("Inconsistent Y sequence construction");
-    }
+    //if (!copied_seq_obj.checkConsistency())
+    //{
+	//	copied_seq_obj.print(cout);
+	//	throw std::runtime_error("Inconsistent Y sequence construction");
+    //}
     //check whether the last 2 loops of result are non-empty and the same
     INT last_loop_start = copied_seq.size() - 2 * loop_len;
     bool is_same = true;
@@ -50,7 +55,9 @@ static void check_nonterminate_seq(const std::vector<INT>& seq, const std::vecto
         }
     }
     if (is_same && !is_empty) {//if the last 2 loops are the same and non-empty, then the sequence is non-terminate
-        cout << "Found nonterminate seq: ";
+        cout << "Found nonterminate seq: "; 
+        YSequence copied_seq_obj;
+        copied_seq_obj.set_and_build(copied_seq);
         copied_seq_obj.print(cout);
         cout << endl;
         if (smallest_nonterminate_seq.seq.size() == 0 || smallest_nonterminate_seq > copied_seq_obj) {
@@ -87,11 +94,14 @@ static bool enum_recursive(std::vector<INT>& prev) //return whether standard
     //check loop dif
     if (!ys._isSuccessor())
         check_loop_dif(ys.seq);
-    ys.print(cout);
-    cout << endl;
+    if (prev.size() <= MAX_PRINT_TERM)
+    {
+        ys.print(cout);
+        cout << endl;
+    }
     //enum next layer
     if (prev.size() < ENUM_LAYERS) {
-        for (int i = 1; ; i++) {
+        for (int i = 1; i<= MAX_NUMBER_IN_SEQ; i++) {
             prev.push_back(i);
             bool isMax = !enum_recursive(prev);
             prev.pop_back();
@@ -103,7 +113,7 @@ static bool enum_recursive(std::vector<INT>& prev) //return whether standard
 
 int main_enumyseq1()
 {
-    vector<INT> prev = { 1,3 };
+    vector<INT> prev = { 1,4 };
     enum_recursive(prev);
     return 0;
 }

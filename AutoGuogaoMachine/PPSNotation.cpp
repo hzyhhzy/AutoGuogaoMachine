@@ -256,7 +256,7 @@ bool PPSNotation::_checkStandardAndNonMaximum(std::vector<bool>& res) {
         //cut
         work.seq.resize(idx + 1);
         
-        INT expanded_terms=work._expandUntilLarger(*this, false);
+        INT expanded_terms=work._expandUntilLarger(seq, false);
         if(expanded_terms == -1)
         {
             return false;
@@ -266,13 +266,13 @@ bool PPSNotation::_checkStandardAndNonMaximum(std::vector<bool>& res) {
     return true;
 }
 
-INT PPSNotation::_expandUntilLarger(const SequenceNotation& target, bool selfcheck) {
+INT PPSNotation::_expandUntilLarger(const std::vector<INT>& target, bool selfcheck) {
     if (selfcheck) {
-        if (seq.size() > target.seq.size()) {
+        if (seq.size() > target.size()) {
             throw std::runtime_error("Sequence length larger than target length");
         }
         for (size_t i = 0; i < seq.size() - 1; ++i) {
-            if (seq[i] != target.seq[i]) {
+            if (seq[i] != target[i]) {
                 throw std::runtime_error("Sequence prefix does not match target");
             }
         }
@@ -317,7 +317,7 @@ INT PPSNotation::_expandUntilLarger(const SequenceNotation& target, bool selfche
 
 
     INT val = seq.back();
-    INT target_val = target.seq[orig_len - 1];
+    INT target_val = target[orig_len - 1];
 
     if (val > target_val) return 0;
     if (val < target_val) return -1;
@@ -325,10 +325,10 @@ INT PPSNotation::_expandUntilLarger(const SequenceNotation& target, bool selfche
     // If equal, we must append terms until we differ or reach target length
     assert(val == target_val);
     // If lengths are equal and we match exactly
-    if (orig_len == target.seq.size()) return 0;
+    if (orig_len == target.size()) return 0;
 
     // Append loop
-    for (INT k = orig_len; k < (INT)target.seq.size(); ++k) {
+    for (INT k = orig_len; k < (INT)target.size(); ++k) {
         INT source_idx = k - L;
         INT next_val = seq[source_idx];
         if (next_val >= x) {
@@ -336,8 +336,8 @@ INT PPSNotation::_expandUntilLarger(const SequenceNotation& target, bool selfche
         }
         seq.push_back(next_val);
         
-        if (next_val > target.seq[k]) return seq.size()-orig_len; //larger
-        if (next_val < target.seq[k]) return -1; //smaller, non-standard
+        if (next_val > target[k]) return seq.size()-orig_len; //larger
+        if (next_val < target[k]) return -1; //smaller, non-standard
         //same, continue
     }
     

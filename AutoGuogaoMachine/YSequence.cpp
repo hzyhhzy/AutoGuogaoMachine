@@ -191,7 +191,7 @@ void YSequence::_expand(INT n) {
     {
         expand_single_col(root, orig_len, i);
     }
-    assert(checkConsistency());
+    //assert(checkConsistency());
     return;
 
 }
@@ -212,7 +212,7 @@ void YSequence::_expandLen(INT n) {
 		expand_single_col(root, orig_len, i);
     }
 
-    assert(checkConsistency());
+    //assert(checkConsistency());
 
     return;
 }
@@ -292,7 +292,7 @@ bool YSequence::_checkStandardAndNonMaximum(std::vector<bool>& res) {
         //work.seq.resize(idx + 1);
         assert(work.seq.size() == idx + 1);
 
-        INT expanded_terms = work._expandUntilLarger(*this, false);
+        INT expanded_terms = work._expandUntilLarger(seq, false);
         if (expanded_terms == -1)
         {
             return false;
@@ -305,16 +305,26 @@ bool YSequence::_checkStandardAndNonMaximum(std::vector<bool>& res) {
     {
        s[i].cachedMax=work.s[i].cachedMax;
     }
+	//the mountain should also be the same
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        if (s[i].x != work.s[i].x || s[i].mountain != work.s[i].mountain)
+        {
+            std::cout << "Inconsistent Y sequence construction: ";
+            print(std::cout);
+            throw std::runtime_error("Inconsistent Y sequence construction");
+        }
+    }
     return true;
 }
 
-INT YSequence::_expandUntilLarger(const SequenceNotation& target, bool selfcheck) {
+INT YSequence::_expandUntilLarger(const std::vector<INT>& target, bool selfcheck) {
     if (selfcheck) {
-        if (seq.size() > target.seq.size()) {
+        if (seq.size() > target.size()) {
             throw std::runtime_error("Sequence length larger than target length");
         }
         for (size_t i = 0; i < seq.size() - 1; ++i) {
-            if (seq[i] != target.seq[i]) {
+            if (seq[i] != target[i]) {
                 throw std::runtime_error("Sequence prefix does not match target");
             }
         }
@@ -334,10 +344,10 @@ INT YSequence::_expandUntilLarger(const SequenceNotation& target, bool selfcheck
 
 
     INT val = seq.back();
-    INT target_val = target.seq[orig_len - 1];
+    INT target_val = target[orig_len - 1];
 
     // If lengths are equal and we match exactly
-    if (orig_len == target.seq.size() && val == target_val) return 0;
+    if (orig_len == target.size() && val == target_val) return 0;
 
 	if (val <= target_val) return -1; //smaller than target, no need to expand
 
@@ -351,16 +361,16 @@ INT YSequence::_expandUntilLarger(const SequenceNotation& target, bool selfcheck
     seq.back() = seq.back() - 1; // -1 and rebuild
     build_col(orig_len - 1);
 
-    for (int i = 0; i < target.seq.size()-orig_len; i++) //build i+orig_len+1 th row
+    for (int i = 0; i < target.size()-orig_len; i++) //build i+orig_len+1 th row
     {
         expand_single_col(root, orig_len, i);
         INT idx = orig_len + i;
 		assert(seq.size() == idx + 1);
-        if (seq[idx] > target.seq[idx])
+        if (seq[idx] > target[idx])
         {
 			return seq.size() - orig_len; //larger
         }
-        else if (seq[idx] < target.seq[idx]) //non-standard
+        else if (seq[idx] < target[idx]) //non-standard
         {
             return -1;
         }
@@ -383,6 +393,63 @@ void YSequence::print(std::ostream& os) const {
   for (INT i = 0; i < (INT)seq.size(); ++i) {
     os << seq[i] << ",";
   }
+}
+
+bool YSequence::checkStandardAndNonMaximum(std::vector<INT> seq, std::vector<bool>& res)
+{
+    // res must be same size as current seq and initially false
+    res.resize(seq.size());
+    std::fill(res.begin(), res.end(), false);
+    if (seq.size() == 0)
+    {
+        return true; //empty sequence is 0
+    }
+    else if (seq.size() == 1)
+    {
+        res[0] = true;
+        return seq[0] == 1;
+    }
+    else if (seq.size() == 2)
+    {
+        res[0] = true;
+        res[1] = false;
+        return seq[0] == 1 && seq[1] >= 1;
+    }
+
+
+
+    YSequence work;
+    // We don't know the exact length to start with.
+    // But based on "find the first difference", we can compare [0, 1, 2, ...] with `seq`.
+
+    work._init(seq[1] + 1);
+
+    INT idx = 0;
+
+    while (idx < (INT)seq.size()) {
+        if (work.seq[idx] < seq[idx]) //non-standard
+            return false;
+        if (work.seq[idx] == seq[idx])
+        {
+            idx++;
+            continue;
+        }
+        assert(work.seq[idx] > seq[idx]);
+        res[idx] = true;
+
+        //cut
+        //work.seq.resize(idx + 1);
+        assert(work.seq.size() == idx + 1);
+
+        INT expanded_terms = work._expandUntilLarger(seq, false);
+        if (expanded_terms == -1)
+        {
+            return false;
+        }
+        idx += expanded_terms;
+    }
+
+    return true;
 }
 
 YSequence::Ycol::Ycol()

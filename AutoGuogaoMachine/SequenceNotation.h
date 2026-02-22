@@ -26,7 +26,7 @@ public:
     virtual int _compare(const SequenceNotation& other) const = 0;
     virtual void _init(INT n) = 0;
     virtual bool _checkStandardAndNonMaximum(std::vector<bool>& res) = 0;
-    virtual INT _expandUntilLarger(const SequenceNotation& target, bool selfcheck = true) = 0;
+    virtual INT _expandUntilLarger(const std::vector<INT>& target, bool selfcheck = true) = 0;
 
     virtual void print(std::ostream& os) const = 0;
 
